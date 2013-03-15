@@ -1,0 +1,92 @@
+#coding:gbk
+import os,re,urllib2,sys
+from bs4 import BeautifulSoup
+reload(sys)
+sys.setdefaultencoding('utf8')
+#转换为中文
+Base_Url = 'http://www.wooyun.org'
+def cdPath(path):  
+  try:  
+		os.mkdir(path)   
+		os.chdir(path)  
+		return 0  
+	except:  
+		return 1
+
+def Convert(strings):
+	return strings.encode('gb18030')
+
+
+def YouGotWeb(URL,Headers,Re):
+	#Base_Url = 'http://www.wooyun.org'
+	req = urllib2.Request(URL,None,Headers)
+	page = urllib2.urlopen(req)
+	Content = page.readline()
+	while Content:
+		#print data
+		Content = page.readline()
+		GotIt = re.search(Re,Content)
+		#print GotIt
+		if GotIt:
+			SomethingNeedToMatch = GotIt.group(0)
+			AllYouNeed = Base_Url + SomethingNeedToMatch
+			return AllYouNeed
+
+def GotYouShit(URL,Headers):
+	
+	req = urllib2.Request(URL,None,Headers)
+	#增加Referer，因为wooyun对Referer做了检测
+	req.add_header('Referer',URL)
+	page = urllib2.urlopen(req)
+	Content = page.read()
+	return Content
+	# while Content:w
+		# Content = page.readline()
+		# Content = Convert(Content)
+		# if Content:
+			# return Content
+
+def GotYouPic(URL,Headers,Line,re):
+	
+	
+	req = urllib2.Request(URL,None,Headers)
+	#增加Referer，因为wooyun对Referer做了检测
+	req.add_header('Referer',URL)
+	page = urllib2.urlopen(req)
+	Content = page.read()
+	return Content
+
+
+			
+GotBugList = re.compile(r'/bugs/wooyun-201\d-\d*')
+PicUrl = re.compile(r'src="/upload/.*[jpg|png|gif]"')
+user_agent = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+headers = {'User-Agent' : user_agent}
+URL = 'http://www.wooyun.org/bugs/new_public/page/'
+
+
+for i in range(1,5):
+	#后去公开的URL列表
+	NewURL = URL + str(i)
+	#print NewURL
+	BUGURL = YouGotWeb(NewURL,headers,GotBugList)
+	
+	print BUGURL
+	#需要增加Referer，取得bug url 后加入Referer 需要确认
+	
+	Conend = GotYouShit(BUGURL,headers) 
+	soup = BeautifulSoup(Conend)
+	hello = soup.findAll('div',{'class':'content'})
+	#soup = Beautifulsoup(hello)
+	hello = str(hello)
+	soup = BeautifulSoup(hello)
+	test = soup.findAll(['p','h3','h2'])
+	test = str(test)
+	test = Convert(test)
+	#print test
+	hello = Convert(hello)
+	filename = BUGURL.split("/")
+	if cdPath("F:/wooyun"):
+		print "create OK"
+	fileresult = open(filename[4]+'.txt','a+')
+	fileresult.write(test)
